@@ -27,32 +27,18 @@ pipeline {
             }
         }
         
-        stage ('Docker Image Create') {
+        stage ('Docker Build && Push') {
             steps {
-                echo 'Docker Image Create'
-              
+                            
                 sh """
                     docker build -t ${DOCKER_IMAGE_NAME}:${BUILD_NUMBER} .
                     docker tag ${DOCKER_IMAGE_NAME}:${BUILD_NUMBER} urico29/${DOCKER_IMAGE_NAME}:latest
-                """
-            }
-        }
-        
-        stage ('Docker Hub Login') {
-            steps {
-                echo 'Docker Hub Login'
-                sh 'echo ${DOCKERHUB_CRED_PSW} | docker login -u ${DOCKERHUB_CRED_USR} --password-stdin'
-            }
-        }
-        
-        stage ('Docker Image Push') {
-            steps {
-                echo 'Docker Image Push'
-                sh """
+                    echo ${DOCKERHUB_CRED_PSW} | docker login -u ${DOCKERHUB_CRED_USR} --password-stdin
                     docker push urico29/${DOCKER_IMAGE_NAME}:latest
                 """
             }
         }
+        
 
         stage ('Docker Container Run') {
             steps {
