@@ -21,12 +21,13 @@ pipeline {
         stage ('Git Clone') {
             steps {
                 git url: 'https://github.com/LeeJeungYoung/spring-petclinic-603.git', 
-                branch: 'main'
+                branch: 'main', credentialsId: 'gitCredentials'
             }
         }
         
         stage ('Maven Build') {
             steps {
+                echo 'Maven Build'
                 sh 'mvn clean package -Dmaven.test.failure.ignore=true'
             }
         }
