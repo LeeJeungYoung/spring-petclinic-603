@@ -42,26 +42,40 @@ pipeline {
             }
         }
 
-        stage('Upload S3') {
+         stage('Upload S3') {
             steps {
                 echo "Upload to S3"
                 dir("${env.WORKSPACE}") {
                     sh 'zip -r scripts.zip ./scripts appspec.yml'
                     withAWS(region:"${REGION}", credentials: "${AWS_CREDENTIAL_NAME}"){
-                        s3Upload(file:"scripts.zip", bucket:"${S3_BUCKET}")
-                    }
+                    s3Upload(file:"scripts.zip", bucket:"${S3_BUCKET}")
+                }
+                sh 'rm -rf ./scripts.zip'
                 }
             }
         }
-    }
-    
-    post {
-        always {
-            echo 'Cleaning up Docker Images...'
-            sh """
-                docker rmi -f ${DOCKER_IMAGE_NAME}:${BUILD_NUMBER} || true
-                docker rmi -f urico29/${DOCKER_IMAGE_NAME}:latest || true
-            """
-        }
+        stage('Codedeploy workload') {
+            steps {
+                echo "create code-deploy group"
+                withAWS(region:"${REGION}", credentials: "${AWS_CREDENTIAL_NAME}") {      
+                    sh """
+                    aws deploy create-deployment-group \
+                    --application-name ${CODE_DEPLOY_NAME} \
+                    --auto-scaling-groups aws03-target-asg \
+                    --deployment-group-name ${CODE_DEPLOY_NAME}-${BUILD_NUMBER} \
+                    --deployment-config-name CodeDeployDefault.OneAtATime \
+                    --service-role-arn ${CODE_DEPLOY_SERVICE_ROLE} \
+                    """
+                    echo "codedeploy workload"
+                    sh """
+                    aws deploy create-deployment --application-name ${CODE_DEPLOY_NAME} \
+                    --deployment-config-name CodeDeployDefault.OneAtATime \
+                    --deployment-group-name ${CODE_DEPLOY_NAME}-${BUILD_NUMBER} \
+                    --s3-location bucket=${S3_BUCKET}, bundleType=zip, key=scripts.zip
+                    """
+                    sleep(10)
+                }
+            }    
+        }    
     }
 }
