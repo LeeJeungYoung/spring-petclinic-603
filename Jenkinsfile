@@ -11,6 +11,10 @@ pipeline {
         DOCKERHUB_CRED = credentials('dockerCredentials')
         DOCKER_API_VERSION = '1.43'
         COMPOSE_API_VERSION = '1.43'
+        REGIN = 'ap-northeast-2'
+
+        DOCKERHUB_CRED = credentials('dockerCredentials')
+        AWS_CREDENTIAL_NAME = 'AKIAXEVXYL7OGIFABT6H'
     }
     
     stages {
@@ -38,44 +42,16 @@ pipeline {
                 """
             }
         }
-        
-
-        stage ('Docker Container Run') {
+        stage('Upload S3') {
             steps {
-                echo 'Docker Container Run'
-                sshPublisher(publishers: [
-                        sshPublisherDesc(
-                            configName: 'target', 
-                            transfers: [
-                                sshTransfer(
-                                    cleanRemote: false, 
-                                    excludes: '', 
-                                    execCommand: '''
-                                        docker rm -f $(docker ps -aq)
-                                        docker rmi -f $(docker images -q)
-                                        docker run -itd -p 80:8080 --name spring-petclinic urico29/spring-petclinic:latest
-                                    ''', 
-                                    execTimeout: 120000, 
-                                    flatten: false, 
-                                    makeEmptyDirs: false, 
-                                    noDefaultExcludes: false, 
-                                    patternSeparator: '[, ]+', 
-                                    remoteDirectory: '', 
-                                    remoteDirectorySDF: false, 
-                                    removePrefix: 'target', 
-                                    sourceFiles: ''
-                                )
-                            ], 
-                            usePromotionTimestamp: false, 
-                            useWorkspaceInPromotion: false, 
-                            verbose: false
-                        )
-                    ])
-              
-            }
-        }
-    } 
+                echo "Upload to S3"
+                dir("${env.WORKSPACE}") {
+                    sh 'zip -r scripts.zip ./scripts appspec.yml'
+                    withAWS(region:"${REGION}", credentials: "${AWS_CREDENTIAL_NAME}"){
+                    s3Upload(file:"scripts.zip", bucket:"${S3_BUCKET}")
+                 }        
 
+         
     post {
         always {
             echo 'Cleaning up Docker Images...'
