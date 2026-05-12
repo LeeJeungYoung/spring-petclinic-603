@@ -10,12 +10,12 @@ pipeline {
         DOCKER_IMAGE_NAME = "spring-petclinic"
         DOCKER_API_VERSION = '1.43'
         COMPOSE_API_VERSION = '1.43'
-        REGION = 'ap-northeast-2'  // REGIN -> REGION 오타 수정
+        REGION = 'ap-northeast-2'
         
         // Credentials 설정
         DOCKERHUB_CRED = credentials('dockerCredentials')
-        AWS_CREDENTIAL_NAME = 'awsCredentials' // ID값인 awsCredentials를 적어주는게 맞습니다
-        S3_BUCKET = '사용자님의-버킷-이름' // 이 변수가 빠져있어서 추가했습니다
+        AWS_CREDENTIAL_NAME = 'awsCredentials'
+        S3_BUCKET = 'aws03-codedeploy-bucket-491085389788-ap-northeast-2-an'
     }
     
     stages {
@@ -53,8 +53,8 @@ pipeline {
                     }
                 }
             }
-        } // <--- stage를 닫는 괄호 추가
-    } // <--- stages 전체를 닫는 괄호 추가
+        }
+    }
     
     post {
         always {
