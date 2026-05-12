@@ -59,14 +59,16 @@ pipeline {
             steps {
                 echo "create code-deploy group"
                 withAWS(region:"${REGION}", credentials: "${AWS_CREDENTIAL_NAME}") {      
+                 
                     sh """
                     aws deploy create-deployment-group \
                     --application-name ${CODE_DEPLOY_NAME} \
                     --auto-scaling-groups aws03-Target-asg \
                     --deployment-group-name ${CODE_DEPLOY_NAME}-${BUILD_NUMBER} \
                     --deployment-config-name CodeDeployDefault.OneAtATime \
-                    --service-role-arn ${CODE_DEPLOY_SERVICE_ROLE} \
+                    --service-role-arn ${CODE_DEPLOY_SERVICE_ROLE}
                     """
+                    
                     echo "codedeploy workload"
                     sh """
                     aws deploy create-deployment --application-name ${CODE_DEPLOY_NAME} \
