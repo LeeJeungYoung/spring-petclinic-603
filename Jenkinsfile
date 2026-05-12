@@ -12,7 +12,7 @@ pipeline {
         COMPOSE_API_VERSION = '1.43'
         REGION = 'ap-northeast-2'
         
-        // Credentials 설정
+        
         DOCKERHUB_CRED = credentials('dockerCredentials')
         AWS_CREDENTIAL_NAME = 'awsCredentials'
         S3_BUCKET = 'aws03-codedeploy-bucket-491085389788-ap-northeast-2-an'
